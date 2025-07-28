@@ -1,5 +1,6 @@
 package com.jack.audiovideoandroid
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.SurfaceHolder
@@ -18,36 +19,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.apply {
-            surfaceView.holder.addCallback(object : SurfaceHolder.Callback {
-                override fun surfaceCreated(holder: SurfaceHolder) {
-                    val surface = holder.surface
-                    val player = H264Player(surface,this@MainActivity)
-                    player.play()
-                }
-
-                override fun surfaceChanged(
-                    holder: SurfaceHolder,
-                    format: Int,
-                    width: Int,
-                    height: Int
-                ) {
-
-                }
-
-                override fun surfaceDestroyed(holder: SurfaceHolder) {
-
-                }
-
-            })
-
+            h264Player.setOnClickListener {
+                startActivity(Intent(this@MainActivity, H264PlayerActivity::class.java))
+            }
         }
     }
-
-    external fun stringFromJNI(): String
-
-
 }
