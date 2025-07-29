@@ -25,6 +25,9 @@ class MainActivity : AppCompatActivity() {
             h264Player.setOnClickListener {
                 startActivity(Intent(this@MainActivity, H264PlayerActivity::class.java))
             }
+            mediaProjection.setOnClickListener {
+                startActivity(Intent(this@MainActivity, MediaProjectionActivity::class.java))
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ package com.jack.audiovideoandroid
 
 import android.content.Intent
 import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.jack.audiovideoandroid.databinding.ActivityMediaProjectionBinding
@@ -19,6 +20,9 @@ class MediaProjectionActivity : AppCompatActivity() {
             captureBtn.setOnClickListener {
                 start()
             }
+            stopBtn.setOnClickListener {
+                stopService(Intent(this@MediaProjectionActivity, ScreenCaptureService::class.java))
+            }
         }
 
     }
@@ -33,10 +37,20 @@ class MediaProjectionActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode != RESULT_OK || requestCode !=1) return
         data?.let {
-            val mediaProjection = mMediaProjectionManager.getMediaProjection(resultCode,it)
-            val encoder = H264Encoder(mediaProjection)
-            encoder.start()
+            startScreenRecordService(resultCode, it)
+        }
+    }
+
+    private fun startScreenRecordService(resultCode: Int, resultData: Intent) {
+        val serviceIntent = Intent(this, ScreenCaptureService::class.java).apply {
+            putExtra(ScreenCaptureService.RESULT_CODE, resultCode)
+            putExtra(ScreenCaptureService.RESULT_DATA, resultData)
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
     }
 }
