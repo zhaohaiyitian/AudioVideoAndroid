@@ -1,12 +1,14 @@
 package com.jack.audiovideoandroid
 
+import android.content.Context
 import android.hardware.display.DisplayManager
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.media.projection.MediaProjection
+import android.os.FileUtils
 
-class H264Encoder(var mediaProjection: MediaProjection): Thread() {
+class H264Encoder(var context: Context,var mediaProjection: MediaProjection): Thread() {
 
     private lateinit var mediaCodec: MediaCodec
     private var width = 640
@@ -47,6 +49,8 @@ class H264Encoder(var mediaProjection: MediaProjection): Thread() {
                 val byteBuffer = mediaCodec.getOutputBuffer(outIndex)
                 val ba = ByteArray(byteBuffer?.remaining()?:0)
                 byteBuffer?.get(ba)
+                writeBytes(context,ba)
+                writeContent(context,ba)
                 mediaCodec.releaseOutputBuffer(outIndex,false)
             }
         }

@@ -20,7 +20,7 @@ class H264Player(private var surface: Surface,private var context: Context) : Ru
     private var mediaCodec: MediaCodec? = null
     init {
         mediaCodec = MediaCodec.createDecoderByType("video/avc") // 创建一个解码器实例。"video/avc" 是 H.264 视频格式的MIME类型标准名称。
-        val mediaFormat = MediaFormat.createVideoFormat("video/avc", 364, 368)
+        val mediaFormat = MediaFormat.createVideoFormat("video/avc", 640, 1920)
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE,15) // 视频的帧率为15fps
         mediaCodec?.configure(mediaFormat,surface,null,0)  // 0: 标志位，0表示配置为解码器
     }
@@ -38,7 +38,7 @@ class H264Player(private var surface: Surface,private var context: Context) : Ru
 
     private fun decodeH264() {
         var bytes: ByteArray? = null
-        bytes = getBytesFromAssets("video.h264")
+        bytes = getBytesFromAssets("codec.h264")
         if (bytes == null) {
             return
         }
