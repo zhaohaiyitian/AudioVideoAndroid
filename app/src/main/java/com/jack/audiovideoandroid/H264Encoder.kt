@@ -5,6 +5,7 @@ import android.hardware.display.DisplayManager
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
+import android.media.MediaMuxer
 import android.media.projection.MediaProjection
 import android.os.FileUtils
 
@@ -29,6 +30,7 @@ class H264Encoder(var context: Context,var mediaProjection: MediaProjection): Th
         mediaCodec.configure(mediaFormat,null,null, MediaCodec.CONFIGURE_FLAG_ENCODE)
 
         val surface = mediaCodec.createInputSurface()
+        // 创建一个虚拟的显示器，将当前屏幕（或指定应用）的画面内容实时投射到该显示器，并通过绑定的 Surface 输出数据。
         mediaProjection.createVirtualDisplay("jack", width, height, 2, DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, surface, null, null)
     }
 
@@ -47,8 +49,9 @@ class H264Encoder(var context: Context,var mediaProjection: MediaProjection): Th
             val outIndex = mediaCodec.dequeueOutputBuffer(info, 10000)
             if (outIndex >= 0) {
                 val byteBuffer = mediaCodec.getOutputBuffer(outIndex)
-                val ba = ByteArray(byteBuffer?.remaining()?:0)
-                byteBuffer?.get(ba)
+                // ByteArray 易造成内存抖动，待优化
+                val ba = ByteArray(byteBuffer?.remaining()?:0) // 获取当前缓冲区剩余的可读字节数
+                byteBuffer?.get(ba) // 将数据从 ByteBuffer 读取到 ba 中
                 writeBytes(context,ba)
                 writeContent(context,ba)
                 mediaCodec.releaseOutputBuffer(outIndex,false)

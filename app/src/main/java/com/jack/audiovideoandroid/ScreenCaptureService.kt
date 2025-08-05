@@ -24,6 +24,7 @@ class ScreenCaptureService : Service() {
     private lateinit var mediaProjection: MediaProjection
     private lateinit var virtualDisplay: VirtualDisplay
     private lateinit var mediaRecorder: MediaRecorder
+    private lateinit var callBack:MediaProjection.Callback
 
     private var currentVideoUri: Uri? = null
 
@@ -52,30 +53,40 @@ class ScreenCaptureService : Service() {
         // 2. 初始化媒体投影
         val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         mediaProjection = projectionManager.getMediaProjection(resultCode, resultData)
-        val encoder = H264Encoder(applicationContext,mediaProjection)
-        encoder.start()
-//        val fileName = "ScreenRecord_${System.currentTimeMillis()}.mp4"
-//        // 3. 初始化MediaRecorder
-//        mediaRecorder = MediaRecorder().apply {
-//            setVideoSource(MediaRecorder.VideoSource.SURFACE)
-//            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-//            setOutputFile(getOutputFileDescriptor(applicationContext,fileName))
-//            setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-//            setVideoSize(1080, 1920) // 根据实际需求调整
-//            setVideoFrameRate(30)
-//            prepare()
-//        }
-//
-//        // 4. 创建VirtualDisplay
-//        virtualDisplay = mediaProjection.createVirtualDisplay(
-//            "ScreenRecorder",
-//            1080, 1920, resources.displayMetrics.densityDpi,
-//            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-//            mediaRecorder.surface, null, null
-//        )
-//
-//        // 5. 开始录制
-//        mediaRecorder.start()
+//        val encoder = H264Encoder(applicationContext,mediaProjection)
+//        encoder.start()
+        val fileName = "ScreenRecord_${System.currentTimeMillis()}.mp4"
+        // 3. 初始化MediaRecorder
+        mediaRecorder = MediaRecorder().apply {
+            setVideoSource(MediaRecorder.VideoSource.SURFACE)
+            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            setOutputFile(getOutputFileDescriptor(applicationContext,fileName))
+            setVideoEncoder(MediaRecorder.VideoEncoder.H264)
+            setVideoSize(1080, 1920) // 根据实际需求调整
+            setVideoFrameRate(30)
+            prepare()
+        }
+
+
+        callBack = object : MediaProjection.Callback() {
+            override fun onStop() {
+
+            }
+        }
+
+        // 2. 注册回调（必须在createVirtualDisplay之前！） 在部分机型上要注册callback 解决部分机型兼容性问题
+        mediaProjection.registerCallback(callBack, null)
+
+        // 4. 创建VirtualDisplay
+        virtualDisplay = mediaProjection.createVirtualDisplay(
+            "ScreenRecorder",
+            1080, 1920, resources.displayMetrics.densityDpi,
+            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+            mediaRecorder.surface, null, null
+        )
+
+        // 5. 开始录制
+        mediaRecorder.start()
     }
 
     private fun createNotification(): Notification {
@@ -129,6 +140,7 @@ class ScreenCaptureService : Service() {
     }
 
     override fun onDestroy() {
+        mediaProjection.unregisterCallback(callBack)
         super.onDestroy()
         stopRecording()
     }

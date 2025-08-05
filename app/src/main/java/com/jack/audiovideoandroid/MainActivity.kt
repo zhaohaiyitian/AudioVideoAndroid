@@ -3,8 +3,8 @@ package com.jack.audiovideoandroid
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.SurfaceHolder
 import com.jack.audiovideoandroid.databinding.ActivityMainBinding
+import com.jack.audiovideoandroid.opengl.OpenglActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,6 +27,15 @@ class MainActivity : AppCompatActivity() {
             }
             mediaProjection.setOnClickListener {
                 startActivity(Intent(this@MainActivity, MediaProjectionActivity::class.java))
+            }
+            screenCast.setOnClickListener {
+                startActivity(Intent(this@MainActivity, ScreenCastActivity::class.java))
+            }
+            communicate.setOnClickListener {
+                startActivity(Intent(this@MainActivity, CommunicateActivity::class.java))
+            }
+            opengl.setOnClickListener {
+                startActivity(Intent(this@MainActivity, OpenglActivity::class.java))
             }
         }
     }

@@ -7,6 +7,9 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.jack.audiovideoandroid.databinding.ActivityMediaProjectionBinding
 
+/**
+ * 录屏
+ */
 class MediaProjectionActivity : AppCompatActivity() {
 
     private lateinit var mMediaProjectionManager: MediaProjectionManager

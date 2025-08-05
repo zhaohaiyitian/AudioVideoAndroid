@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:paddingTop="24dp"
     tools:context=".MainActivity">
 
 
@@ -18,7 +19,25 @@
         android:id="@+id/mediaProjection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="MediaProjection"/>
+        android:text="录屏"/>
+
+    <Button
+        android:id="@+id/screenCast"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="投屏"/>
+
+    <Button
+        android:id="@+id/communicate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="音视频通话"/>
+
+    <Button
+        android:id="@+id/opengl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="OpenGL"/>
 
 
 </LinearLayout>

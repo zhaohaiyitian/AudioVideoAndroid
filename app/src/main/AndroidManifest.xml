@@ -41,6 +41,12 @@
             android:exported="true"/>
         <activity android:name=".MediaProjectionActivity"
             android:exported="true"/>
+        <activity android:name=".CommunicateActivity"
+            android:exported="true"/>
+        <activity android:name=".ScreenCastActivity"
+            android:exported="true"/>
+        <activity android:name=".opengl.OpenglActivity"
+            android:exported="true"/>
         <service android:name=".ScreenCaptureService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection"/>
