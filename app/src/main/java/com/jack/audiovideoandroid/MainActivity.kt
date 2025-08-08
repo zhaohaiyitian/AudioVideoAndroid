@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.jack.audiovideoandroid.databinding.ActivityMainBinding
 import com.jack.audiovideoandroid.opengl.OpenglActivity
+import com.jack.audiovideoandroid.opengl.TestActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -36,6 +37,9 @@ class MainActivity : AppCompatActivity() {
             }
             opengl.setOnClickListener {
                 startActivity(Intent(this@MainActivity, OpenglActivity::class.java))
+            }
+            test.setOnClickListener {
+                startActivity(Intent(this@MainActivity, TestActivity::class.java))
             }
         }
     }

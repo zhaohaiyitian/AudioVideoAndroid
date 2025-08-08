@@ -97,7 +97,7 @@ class OpenglActivity : AppCompatActivity() {
                 Toast.makeText(this, "相机启动失败: ${e.message}", Toast.LENGTH_SHORT).show()
             }
             
-        }, ContextCompat.getMainExecutor(this))
+        }, ContextCompat.getMainExecutor(this)) // 因为要预览画面，所以要设置为主线程
     }
     
     /**

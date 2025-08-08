@@ -47,6 +47,8 @@
             android:exported="true"/>
         <activity android:name=".opengl.OpenglActivity"
             android:exported="true"/>
+        <activity android:name=".opengl.TestActivity"
+            android:exported="true"/>
         <service android:name=".ScreenCaptureService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection"/>

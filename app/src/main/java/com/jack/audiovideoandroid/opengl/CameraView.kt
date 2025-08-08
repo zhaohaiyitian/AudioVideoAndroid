@@ -58,9 +58,10 @@ class CameraView @JvmOverloads constructor(
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        // 清除屏幕
+        //这行代码本身并不执行任何绘制或清除操作，它只是告诉OpenGL：“下一次当你被命令去清除颜色缓冲区时，请使用这个我现在指定的颜色
         GLES20.glClearColor(0f, 0f, 0f, 1f)
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+        // 执行清除操作。这行代码是一个执行命令。它命令OpenGL：现在，请使用你当前存储的‘清除颜色’（也就是我们上一步设置的黑色），去填充（擦除）指定的缓冲区
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT) // 这指定了颜色缓冲区。颜色缓冲区是最终显示在屏幕上的像素颜色信息的存储位置。所以清除它，就等于擦除了屏幕上的画面
         
         mCameraTexture?.let {
             // 捕获数据流中最新到达的一帧图像，并将其更新到 SurfaceTexture 所管理的那个OpenGL纹理上
@@ -77,6 +78,7 @@ class CameraView @JvmOverloads constructor(
     }
 
     // SurfaceTexture 在接收到新的一帧数据后，会立即在其指定的监听器上回调 onFrameAvailable() 方法
+    // onFrameAvailable() 方法并不在你的主UI线程或OpenGL渲染线程上执行。它通常是在一个由Android系统框架管理的特定线程（例如Binder线程）上被调用的。
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
         // 通知 GLSurfaceView 渲染器（Renderer）的数据已经“变脏”（dirty），需要进行一次重绘
         // requestRender() 不会立即调用 onDrawFrame()。它只是向 GLSurfaceView 的渲染线程发送一个请求，告诉它在下一个合适的时机执行一次渲染。
