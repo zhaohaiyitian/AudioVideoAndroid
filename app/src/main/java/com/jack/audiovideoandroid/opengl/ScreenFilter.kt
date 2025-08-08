@@ -74,8 +74,10 @@ open class ScreenFilter(context: Context) {
         vTexture = GLES20.glGetUniformLocation(program, "vTexture")
         vMatrix = GLES20.glGetUniformLocation(program, "vMatrix")
 
-        GLES20.glVertexAttribPointer(vPosition,2,GLES20.GL_FLOAT,false,0,vertexBuffer)
-        GLES20.glEnableVertexAttribArray(vPosition)
+        // 这两行代码必须成对出现。只有先详细地描述了数据，然后才能启用它
+        GLES20.glVertexAttribPointer(vPosition,2,GLES20.GL_FLOAT,false,0,vertexBuffer)// 这行代码是描述性的
+        GLES20.glEnableVertexAttribArray(vPosition) // 这行代码是执行性的
+
         GLES20.glVertexAttribPointer(vCoord,2,GLES20.GL_FLOAT,false,0,textureBuffer)
         GLES20.glEnableVertexAttribArray(vCoord)
 
