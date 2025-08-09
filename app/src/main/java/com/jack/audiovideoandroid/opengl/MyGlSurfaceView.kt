@@ -20,7 +20,7 @@ class MyGlSurfaceView(context: Context?, attrs: AttributeSet?) : GLSurfaceView(c
 
     init {
         setEGLContextClientVersion(2)
-        setRenderer(this)
+        setRenderer(this) // 在该函数中会启动一个新的线程来创建EGL环境
         renderMode = RENDERMODE_WHEN_DIRTY
     }
 

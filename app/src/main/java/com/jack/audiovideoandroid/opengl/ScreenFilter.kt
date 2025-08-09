@@ -39,6 +39,8 @@ open class ScreenFilter(context: Context) {
      var vTexture = 0
      var vMatrix = 0
 
+    var vboIds = IntArray(1)
+
 
     init {
         val vert = readRawTextFile(context, R.raw.camera_vert)
@@ -52,6 +54,8 @@ open class ScreenFilter(context: Context) {
         // 创建并链接程序
         program = createAndLinkProgram(vShader, fragShader)
 
+        // 实际分配的是主内存 它是一种特殊的内存，称为DMA内存，GPU可以直接从该内存中读取数据，不需要CPU参与   设置字节序order(ByteOrder.nativeOrder())
+        // 这个内存与VBO内存不同，VBO内存才是GPU中的内存
         vertexBuffer = ByteBuffer.allocateDirect(4 * 2 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
         vertexBuffer.clear()
         vertexBuffer.put(VERTEX)
@@ -59,11 +63,22 @@ open class ScreenFilter(context: Context) {
         textureBuffer = ByteBuffer.allocateDirect(4 * 2 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
         textureBuffer.clear()
         textureBuffer.put(TEXTURE)
+
+        // 将数据先拷贝到GPU中
+        GLES20.glGenBuffers(1,vboIds,0)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER,vboIds[0])
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER,vertexBuffer.capacity(),vertexBuffer,GLES20.GL_STATIC_DRAW)
+
+        // 解绑vbo
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER,0)
     }
 
     fun onDraw(width: Int, height: Int,mtx:FloatArray,textures: Int) {
         GLES20.glViewport(0,0,width,height)
         GLES20.glUseProgram(program)
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER,vboIds[0])
+
         // 读取指针拨回到最开始的位置
         vertexBuffer.position(0)
         textureBuffer.position(0)
@@ -75,7 +90,8 @@ open class ScreenFilter(context: Context) {
         vMatrix = GLES20.glGetUniformLocation(program, "vMatrix")
 
         // 这两行代码必须成对出现。只有先详细地描述了数据，然后才能启用它
-        GLES20.glVertexAttribPointer(vPosition,2,GLES20.GL_FLOAT,false,0,vertexBuffer)// 这行代码是描述性的
+//        GLES20.glVertexAttribPointer(vPosition,2,GLES20.GL_FLOAT,false,0,vertexBuffer)// 这行代码是描述性的
+        GLES20.glVertexAttribPointer(vPosition,2,GLES20.GL_FLOAT,false,0,0)// 这行代码是描述性的 offset设置为0表示从gpu中读取数据
         GLES20.glEnableVertexAttribArray(vPosition) // 这行代码是执行性的
 
         GLES20.glVertexAttribPointer(vCoord,2,GLES20.GL_FLOAT,false,0,textureBuffer)
@@ -93,6 +109,12 @@ open class ScreenFilter(context: Context) {
 
         // 通知GPU渲染
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP,0,4)
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER,0)
+
+        // 释放资源
+        GLES20.glDisableVertexAttribArray(vPosition)
+        GLES20.glDisableVertexAttribArray(vCoord)
     }
 
     fun readRawTextFile(context: Context, rawId: Int): String {
@@ -120,6 +142,7 @@ open class ScreenFilter(context: Context) {
      * 创建着色器
      */
     protected fun createShader(type: Int, shaderCode: String): Int {
+        // 创建Shader对象
         val shader = when (type) {
             SHADER_TYPE_VERTEX -> GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER)
             SHADER_TYPE_FRAGMENT -> GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER)
@@ -127,7 +150,7 @@ open class ScreenFilter(context: Context) {
         }
         
         // 加载着色器源码
-        GLES20.glShaderSource(shader, shaderCode)
+        GLES20.glShaderSource(shader, shaderCode) // 指定Shader源码
         // 编译着色器
         GLES20.glCompileShader(shader)
         
@@ -155,11 +178,11 @@ open class ScreenFilter(context: Context) {
             return 0
         }
         
-        // 附加着色器
+        // 绑定Shader到OpenGL程序
         GLES20.glAttachShader(program, vertexShader)
         GLES20.glAttachShader(program, fragmentShader)
         
-        // 链接程序
+        // 链接OpenGL程序
         GLES20.glLinkProgram(program)
         
         // 检查链接状态
