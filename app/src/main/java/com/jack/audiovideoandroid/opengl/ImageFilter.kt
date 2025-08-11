@@ -25,25 +25,27 @@ class ImageFilter(context: Context) {
 
     // 纹理坐标系
     var TEXTURE = floatArrayOf(
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        0.0f, 1.0f,
-        1.0f, 1.0f
+        0.0f, 1.0f, // 左下
+        1.0f, 1.0f, // 右下
+        0.0f, 0.0f, // 左上
+        1.0f, 0.0f  // 右上
     )
 
     var program: Int
-    var vertexBuffer: FloatBuffer
-    var textureBuffer: FloatBuffer // 纹理坐标
+    var positionBuffer: FloatBuffer
+    var coordBuffer: FloatBuffer // 纹理坐标
 
     var vPosition = 0
     var vCoord = 0
+    var inputTexture = 0
 
     init {
-        val vert = readRawTextFile(context, R.raw.camera_vert)
+        Log.d("wangjie","init....")
+        val vert = readRawTextFile(context, R.raw.image_vert)
         // 创建顶点程序
         val vShader = createShader(SHADER_TYPE_VERTEX, vert)
 
-        val frag = readRawTextFile(context, R.raw.camera_frag)
+        val frag = readRawTextFile(context, R.raw.image_frag)
         // 创建片段程序
         val fragShader = createShader(SHADER_TYPE_FRAGMENT, frag)
 
@@ -52,13 +54,13 @@ class ImageFilter(context: Context) {
 
         // 实际分配的是主内存 它是一种特殊的内存，称为DMA内存，GPU可以直接从该内存中读取数据，不需要CPU参与   设置字节序order(ByteOrder.nativeOrder())
         // 这个内存与VBO内存不同，VBO内存才是GPU中的内存
-        vertexBuffer = ByteBuffer.allocateDirect(4 * 2 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
-        vertexBuffer.clear()
-        vertexBuffer.put(VERTEX)
+        positionBuffer = ByteBuffer.allocateDirect(VERTEX.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
+        positionBuffer.clear()
+        positionBuffer.put(VERTEX)
 
-        textureBuffer = ByteBuffer.allocateDirect(4 * 2 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
-        textureBuffer.clear()
-        textureBuffer.put(TEXTURE)
+        coordBuffer = ByteBuffer.allocateDirect(TEXTURE.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
+        coordBuffer.clear()
+        coordBuffer.put(TEXTURE)
     }
 
 
@@ -78,34 +80,44 @@ class ImageFilter(context: Context) {
 
 
     fun drawFrame(textures: Int) {
+
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glUseProgram(program)
 
-
         // 读取指针拨回到最开始的位置
-        vertexBuffer.position(0)
-        textureBuffer.position(0)
+        positionBuffer.position(0)
+        coordBuffer.position(0)
 
         //定位到GPU的变量地址
         vPosition = GLES20.glGetAttribLocation(program,"vPosition")
         vCoord = GLES20.glGetAttribLocation(program,"vCoord")
 
+        inputTexture = GLES20.glGetUniformLocation(program,"inputImageTexture")
+
 
         // 这两行代码必须成对出现。只有先详细地描述了数据，然后才能启用它
-//        GLES20.glVertexAttribPointer(vPosition,2,GLES20.GL_FLOAT,false,0,vertexBuffer)// 这行代码是描述性的
-        GLES20.glVertexAttribPointer(vPosition,2,GLES20.GL_FLOAT,false,0,vertexBuffer)// 这行代码是描述性的 offset设置为0表示从gpu中读取数据
+        GLES20.glVertexAttribPointer(vPosition,2,GLES20.GL_FLOAT,false,0,positionBuffer)// 这行代码是描述性的
+//        GLES20.glVertexAttribPointer(vPosition,2,GLES20.GL_FLOAT,false,0,0)// 这行代码是描述性的 offset设置为0表示从gpu中读取数据
         GLES20.glEnableVertexAttribArray(vPosition) // 这行代码是执行性的
 
-        GLES20.glVertexAttribPointer(vCoord,2,GLES20.GL_FLOAT,false,0,textureBuffer)
+        GLES20.glVertexAttribPointer(vCoord,2,GLES20.GL_FLOAT,false,0,coordBuffer)
         GLES20.glEnableVertexAttribArray(vCoord)
 
         // 激活0号纹理单元
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        // 把摄像头画面（身份证号为textures的那个纹理）绑定到当前激活的0号纹理单元上。”
-        GLES20.glBindTexture(GLES20.GL_TEXTURE0,textures)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,textures)
+        // 告诉片元着色器里的vTexture这个采样器（sampler2D），让它去0号纹理单元采样颜色
+        GLES20.glUniform1i(inputTexture,0)
+
+        // 通知GPU渲染
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP,0,4)
 
         // 释放资源
         GLES20.glDisableVertexAttribArray(vPosition)
         GLES20.glDisableVertexAttribArray(vCoord)
+
+        // 把第0图层解绑
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
     }
 
 
@@ -137,8 +149,8 @@ class ImageFilter(context: Context) {
     private fun createShader(type: Int, shaderCode: String): Int {
         // 创建Shader对象
         val shader = when (type) {
-            ScreenFilter.SHADER_TYPE_VERTEX -> GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER)
-            ScreenFilter.SHADER_TYPE_FRAGMENT -> GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER)
+            SHADER_TYPE_VERTEX -> GLES20.glCreateShader(GLES20.GL_VERTEX_SHADER)
+            SHADER_TYPE_FRAGMENT -> GLES20.glCreateShader(GLES20.GL_FRAGMENT_SHADER)
             else -> throw IllegalArgumentException("Unknown shader type")
         }
 
