@@ -10,11 +10,19 @@ void main() {
     // 可以与纹理结合，实现纹理映射
     // 通过它可以实现各种颜色特效，如光照，高亮等
     vec4 tc = texture2D(vTexture,aCoord);
-    float x = aCoord.x; // 分屏操作
-    if(x < 0.5) {
-        x+=0.25;
-    } else {
-        x-=0.25;
+    float x = aCoord.x; // 分屏操作 因为是旋转的 分屏样式和x,y是相反的
+    // 两屏
+//    if(x < 0.5) {
+//        x+=0.25;
+//    } else {
+//        x-=0.25;
+//    }
+    // 三屏
+    float a = 1.0/3.0;
+    if(x < a) {
+        x+=a;
+    } else if(x> 2.0*a) {
+        x-=1.0/3.0;
     }
     gl_FragColor = texture2D(vTexture, vec2(x,aCoord.y)); // texture2D 内置函数
 }
